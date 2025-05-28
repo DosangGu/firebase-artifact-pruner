@@ -1,1 +1,1 @@
-# firebase-distribution-prune
+# firebase-artifact-pruner
