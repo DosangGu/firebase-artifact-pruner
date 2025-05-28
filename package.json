@@ -1,14 +1,20 @@
 {
   "name": "firebase-artifact-pruner",
   "version": "0.0.1",
-  "description": "",
+  "description": "CLI tool to prune Firebase distribution artifacts",
   "main": "dist/index.js",
+  "bin": {
+    "firebase-artifact-pruner": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "start": "node dist/index.js"
   },
-  "keywords": [],
+  "keywords": ["firebase", "firebase-distribution", "cli", "artifact", "prune"],
   "author": "Dosang Gu",
   "license": "MIT",
   "type": "commonjs",
