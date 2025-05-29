@@ -59,21 +59,33 @@ async function listReleases(
   const client = await auth.getClient();
   const accessToken = (await client.getAccessToken()).token;
 
-  const url = `https://firebaseappdistribution.googleapis.com/v1/projects/${projectId}/apps/${appId}/releases`;
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  let allReleases: Release[] = [];
+  let nextPageToken: string | undefined = undefined;
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to list releases for app ${appId}: ${response.status} ${errorText}`
-    );
-  }
-  const result = await response.json();
-  return result.releases || [];
+  do {
+    let url = `https://firebaseappdistribution.googleapis.com/v1/projects/${projectId}/apps/${appId}/releases`;
+    if (nextPageToken) {
+      url += `?pageToken=${nextPageToken}`;
+    }
+
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Failed to list releases for app ${appId}: ${response.status} ${errorText}`
+      );
+    }
+    const result = await response.json();
+    allReleases = allReleases.concat(result.releases || []);
+    nextPageToken = result.nextPageToken;
+  } while (nextPageToken);
+
+  return allReleases;
 }
 
 async function deleteRelease(
