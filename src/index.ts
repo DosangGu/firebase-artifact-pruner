@@ -26,10 +26,7 @@ async function listApps(
 ): Promise<App[]> {
   const auth = new GoogleAuth({
     keyFile: serviceAccountKeyPath,
-    scopes: [
-      "https://www.googleapis.com/auth/firebase",
-      "https://www.googleapis.com/auth/cloud-platform",
-    ],
+    scopes: ["https://www.googleapis.com/auth/cloud-platform"],
   });
   const client = await auth.getClient();
   const accessToken = (await client.getAccessToken()).token;
@@ -57,10 +54,7 @@ async function listReleases(
 ): Promise<Release[]> {
   const auth = new GoogleAuth({
     keyFile: serviceAccountKeyPath,
-    scopes: [
-      "https://www.googleapis.com/auth/firebase",
-      "https://www.googleapis.com/auth/cloud-platform",
-    ],
+    scopes: ["https://www.googleapis.com/auth/cloud-platform"],
   });
   const client = await auth.getClient();
   const accessToken = (await client.getAccessToken()).token;
@@ -88,10 +82,7 @@ async function deleteRelease(
 ): Promise<void> {
   const auth = new GoogleAuth({
     keyFile: serviceAccountKeyPath,
-    scopes: [
-      "https://www.googleapis.com/auth/firebase",
-      "https://www.googleapis.com/auth/cloud-platform",
-    ],
+    scopes: ["https://www.googleapis.com/auth/cloud-platform"],
   });
   const client = await auth.getClient();
   const accessToken = (await client.getAccessToken()).token;
