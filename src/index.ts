@@ -50,7 +50,10 @@ async function listApps(projectId: string, serviceAccountKeyPath: string): Promi
 async function listReleases(projectId: string, appId: string, serviceAccountKeyPath: string): Promise<Release[]> {
   const auth = new GoogleAuth({
     keyFile: serviceAccountKeyPath,
-    scopes: ['https://www.googleapis.com/auth/firebase'],
+    scopes: [
+      'https://www.googleapis.com/auth/firebase',
+      'https://www.googleapis.com/auth/cloud-platform'
+    ],
   });
   const client = await auth.getClient();
   const accessToken = (await client.getAccessToken()).token;
@@ -73,7 +76,10 @@ async function listReleases(projectId: string, appId: string, serviceAccountKeyP
 async function deleteRelease(releaseName: string, serviceAccountKeyPath: string): Promise<void> {
   const auth = new GoogleAuth({
     keyFile: serviceAccountKeyPath,
-    scopes: ['https://www.googleapis.com/auth/firebase'],
+    scopes: [
+      'https://www.googleapis.com/auth/firebase',
+      'https://www.googleapis.com/auth/cloud-platform'
+    ],
   });
   const client = await auth.getClient();
   const accessToken = (await client.getAccessToken()).token;
