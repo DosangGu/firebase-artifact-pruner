@@ -88,10 +88,17 @@ async function listReleases(
   return allReleases;
 }
 
-async function deleteRelease(
-  releaseName: string,
+async function deleteReleases(
+  projectId: string,
+  appId: string,
+  releaseNames: string[],
   serviceAccountKeyPath: string
 ): Promise<void> {
+  if (releaseNames.length === 0) {
+    console.log("No releases provided to delete.");
+    return;
+  }
+
   const auth = new GoogleAuth({
     keyFile: serviceAccountKeyPath,
     scopes: ["https://www.googleapis.com/auth/cloud-platform"],
@@ -99,21 +106,44 @@ async function deleteRelease(
   const client = await auth.getClient();
   const accessToken = (await client.getAccessToken()).token;
 
-  const url = `https://firebaseappdistribution.googleapis.com/v1/${releaseName}`;
-  const response = await fetch(url, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  const url = `https://firebaseappdistribution.googleapis.com/v1/projects/${projectId}/apps/${appId}/releases:batchDelete`;
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to delete release ${releaseName}: ${response.status} ${errorText}`
-    );
+  const chunkSize = 100;
+  for (let i = 0; i < releaseNames.length; i += chunkSize) {
+    const chunk = releaseNames.slice(i, i + chunkSize);
+    // Ensure release names are in the full format projects/projectId/apps/appId/releases/releaseId
+    // The release.name from listReleases should already be in this format.
+    const formattedReleaseNames = chunk;
+
+    console.log(`Attempting to delete a chunk of ${formattedReleaseNames.length} release(s) for app ${appId}.`);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ names: formattedReleaseNames }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      // Log the specific chunk that failed, but continue trying other chunks.
+      console.error(
+        `Failed to batch delete a chunk of releases for app ${appId}: ${response.status} ${errorText}. Releases in this chunk: ${formattedReleaseNames.join(", ")}`
+      );
+      // Optionally, you could decide to throw an error here and stop further processing,
+      // or collect failures and report them at the end.
+      // For now, it logs the error and continues.
+    } else {
+      console.log(
+        `Successfully deleted a chunk of ${formattedReleaseNames.length} release(s) for app ${appId}.`
+      );
+    }
   }
-  console.log(`Successfully deleted release: ${releaseName}`);
+  console.log(
+    `Finished attempting to delete ${releaseNames.length} release(s) in chunks for app ${appId}.`
+  );
 }
 
 async function main() {
@@ -187,15 +217,26 @@ async function main() {
           console.log("No releases to delete based on current criteria.");
         } else {
           console.log(`Found ${releasesToDelete.length} release(s) to delete:`);
+          const releaseNamesToDelete = releasesToDelete.map(
+            (release) => release.name
+          );
           for (const release of releasesToDelete) {
             console.log(
               `- ${release.displayVersion} (${release.buildVersion}), Created: ${release.createTime}`
             );
-            try {
-              await deleteRelease(release.name, serviceAccountKeyPath);
-            } catch (error) {
-              console.error(`Error deleting release ${release.name}:`, error);
-            }
+          }
+          try {
+            await deleteReleases(
+              projectId,
+              appIdOption,
+              releaseNamesToDelete,
+              serviceAccountKeyPath
+            );
+          } catch (error) {
+            console.error(
+              `Error batch deleting releases for app ${appIdOption}:`,
+              error
+            );
           }
         }
       }
@@ -257,15 +298,26 @@ Processing app: ${app.name} (${app.appId})`);
         }
 
         console.log(`Found ${releasesToDelete.length} release(s) to delete:`);
+        const releaseNamesToDelete = releasesToDelete.map(
+          (release) => release.name
+        );
         for (const release of releasesToDelete) {
           console.log(
             `- ${release.displayVersion} (${release.buildVersion}), Created: ${release.createTime}`
           );
-          try {
-            await deleteRelease(release.name, serviceAccountKeyPath);
-          } catch (error) {
-            console.error(`Error deleting release ${release.name}:`, error);
-          }
+        }
+        try {
+          await deleteReleases(
+            projectId,
+            app.appId,
+            releaseNamesToDelete,
+            serviceAccountKeyPath
+          );
+        } catch (error) {
+          console.error(
+            `Error batch deleting releases for app ${app.appId}:`,
+            error
+          );
         }
       }
     }
