@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import * as admin from 'firebase-admin';
-import { Command } from 'commander';
-import { GoogleAuth } from 'google-auth-library';
+import * as admin from "firebase-admin";
+import { Command } from "commander";
+import { GoogleAuth } from "google-auth-library";
 
 interface App {
   name: string;
@@ -20,12 +20,15 @@ interface Release {
   createTime: string; // ISO 8601 format
 }
 
-async function listApps(projectId: string, serviceAccountKeyPath: string): Promise<App[]> {
+async function listApps(
+  projectId: string,
+  serviceAccountKeyPath: string
+): Promise<App[]> {
   const auth = new GoogleAuth({
     keyFile: serviceAccountKeyPath,
     scopes: [
-      'https://www.googleapis.com/auth/firebase',
-      'https://www.googleapis.com/auth/cloud-platform'
+      "https://www.googleapis.com/auth/firebase",
+      "https://www.googleapis.com/auth/cloud-platform",
     ],
   });
   const client = await auth.getClient();
@@ -47,12 +50,16 @@ async function listApps(projectId: string, serviceAccountKeyPath: string): Promi
   return result.apps || [];
 }
 
-async function listReleases(projectId: string, appId: string, serviceAccountKeyPath: string): Promise<Release[]> {
+async function listReleases(
+  projectId: string,
+  appId: string,
+  serviceAccountKeyPath: string
+): Promise<Release[]> {
   const auth = new GoogleAuth({
     keyFile: serviceAccountKeyPath,
     scopes: [
-      'https://www.googleapis.com/auth/firebase',
-      'https://www.googleapis.com/auth/cloud-platform'
+      "https://www.googleapis.com/auth/firebase",
+      "https://www.googleapis.com/auth/cloud-platform",
     ],
   });
   const client = await auth.getClient();
@@ -67,18 +74,23 @@ async function listReleases(projectId: string, appId: string, serviceAccountKeyP
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Failed to list releases for app ${appId}: ${response.status} ${errorText}`);
+    throw new Error(
+      `Failed to list releases for app ${appId}: ${response.status} ${errorText}`
+    );
   }
   const result = await response.json();
   return result.releases || [];
 }
 
-async function deleteRelease(releaseName: string, serviceAccountKeyPath: string): Promise<void> {
+async function deleteRelease(
+  releaseName: string,
+  serviceAccountKeyPath: string
+): Promise<void> {
   const auth = new GoogleAuth({
     keyFile: serviceAccountKeyPath,
     scopes: [
-      'https://www.googleapis.com/auth/firebase',
-      'https://www.googleapis.com/auth/cloud-platform'
+      "https://www.googleapis.com/auth/firebase",
+      "https://www.googleapis.com/auth/cloud-platform",
     ],
   });
   const client = await auth.getClient();
@@ -86,7 +98,7 @@ async function deleteRelease(releaseName: string, serviceAccountKeyPath: string)
 
   const url = `https://firebaseappdistribution.googleapis.com/v1/${releaseName}`;
   const response = await fetch(url, {
-    method: 'DELETE',
+    method: "DELETE",
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
@@ -94,7 +106,9 @@ async function deleteRelease(releaseName: string, serviceAccountKeyPath: string)
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Failed to delete release ${releaseName}: ${response.status} ${errorText}`);
+    throw new Error(
+      `Failed to delete release ${releaseName}: ${response.status} ${errorText}`
+    );
   }
   console.log(`Successfully deleted release: ${releaseName}`);
 }
@@ -102,11 +116,22 @@ async function deleteRelease(releaseName: string, serviceAccountKeyPath: string)
 async function main() {
   const program = new Command();
   program
-    .requiredOption('-p, --projectId <projectId>', 'Firebase Project ID')
-    .requiredOption('-k, --serviceAccountKey <path>', 'Path to Firebase service account key JSON file')
-    .option('-a, --appId <appId>', 'Specific Firebase App ID to process') // Added appId option
-    .option('-c, --minCount <number>', 'Minimum number of artifacts to keep', '5')
-    .option('-d, --maxDays <number>', 'Maximum age in days for artifacts to keep', '30')
+    .requiredOption("-p, --projectId <projectId>", "Firebase Project ID")
+    .requiredOption(
+      "-k, --serviceAccountKey <path>",
+      "Path to Firebase service account key JSON file"
+    )
+    .option("-a, --appId <appId>", "Specific Firebase App ID to process") // Added appId option
+    .option(
+      "-c, --minCount <number>",
+      "Minimum number of artifacts to keep",
+      "5"
+    )
+    .option(
+      "-d, --maxDays <number>",
+      "Maximum age in days for artifacts to keep",
+      "30"
+    )
     .parse(process.argv);
 
   const options = program.opts();
@@ -126,14 +151,23 @@ async function main() {
 
     if (appIdOption) {
       // Process a single app if appId is provided
-      console.log(`Processing specified app: ${appIdOption} for project: ${projectId}`);
-      const releases = await listReleases(projectId, appIdOption, serviceAccountKeyPath);
+      console.log(
+        `Processing specified app: ${appIdOption} for project: ${projectId}`
+      );
+      const releases = await listReleases(
+        projectId,
+        appIdOption,
+        serviceAccountKeyPath
+      );
 
       if (!releases || releases.length === 0) {
-        console.log('No releases found for this app.');
+        console.log("No releases found for this app.");
       } else {
         console.log(`Found ${releases.length} release(s).`);
-        releases.sort((a, b) => new Date(b.createTime).getTime() - new Date(a.createTime).getTime());
+        releases.sort(
+          (a, b) =>
+            new Date(b.createTime).getTime() - new Date(a.createTime).getTime()
+        );
         const releasesToDelete: Release[] = [];
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - maxDays);
@@ -147,11 +181,13 @@ async function main() {
         }
 
         if (releasesToDelete.length === 0) {
-          console.log('No releases to delete based on current criteria.');
+          console.log("No releases to delete based on current criteria.");
         } else {
           console.log(`Found ${releasesToDelete.length} release(s) to delete:`);
           for (const release of releasesToDelete) {
-            console.log(`- ${release.displayVersion} (${release.buildVersion}), Created: ${release.createTime}`);
+            console.log(
+              `- ${release.displayVersion} (${release.buildVersion}), Created: ${release.createTime}`
+            );
             try {
               await deleteRelease(release.name, serviceAccountKeyPath);
             } catch (error) {
@@ -166,27 +202,38 @@ async function main() {
       const apps = await listApps(projectId, serviceAccountKeyPath);
 
       if (!apps || apps.length === 0) {
-        console.log('No apps found in this project.');
+        console.log("No apps found in this project.");
         return;
       }
 
       console.log(`Found ${apps.length} app(s):`);
-      apps.forEach(app => console.log(`- ${app.name} (ID: ${app.appId}, Platform: ${app.platform})`));
+      apps.forEach((app) =>
+        console.log(
+          `- ${app.name} (ID: ${app.appId}, Platform: ${app.platform})`
+        )
+      );
 
       for (const app of apps) {
         console.log(`
 Processing app: ${app.name} (${app.appId})`);
-        const releases = await listReleases(projectId, app.appId, serviceAccountKeyPath);
+        const releases = await listReleases(
+          projectId,
+          app.appId,
+          serviceAccountKeyPath
+        );
 
         if (!releases || releases.length === 0) {
-          console.log('No releases found for this app.');
+          console.log("No releases found for this app.");
           continue;
         }
 
         console.log(`Found ${releases.length} release(s).`);
 
         // Sort releases by creation time, newest first
-        releases.sort((a, b) => new Date(b.createTime).getTime() - new Date(a.createTime).getTime());
+        releases.sort(
+          (a, b) =>
+            new Date(b.createTime).getTime() - new Date(a.createTime).getTime()
+        );
 
         const releasesToDelete: Release[] = [];
         const cutoffDate = new Date();
@@ -202,13 +249,15 @@ Processing app: ${app.name} (${app.appId})`);
         }
 
         if (releasesToDelete.length === 0) {
-          console.log('No releases to delete based on current criteria.');
+          console.log("No releases to delete based on current criteria.");
           continue;
         }
 
         console.log(`Found ${releasesToDelete.length} release(s) to delete:`);
         for (const release of releasesToDelete) {
-          console.log(`- ${release.displayVersion} (${release.buildVersion}), Created: ${release.createTime}`);
+          console.log(
+            `- ${release.displayVersion} (${release.buildVersion}), Created: ${release.createTime}`
+          );
           try {
             await deleteRelease(release.name, serviceAccountKeyPath);
           } catch (error) {
@@ -217,9 +266,9 @@ Processing app: ${app.name} (${app.appId})`);
         }
       }
     }
-    console.log('\nPruning complete.');
+    console.log("\nPruning complete.");
   } catch (error) {
-    console.error('Error during script execution:', error);
+    console.error("Error during script execution:", error);
     process.exit(1);
   }
 }
