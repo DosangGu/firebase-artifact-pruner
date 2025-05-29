@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import * as admin from 'firebase-admin';
 import { Command } from 'commander';
 import { GoogleAuth } from 'google-auth-library';
