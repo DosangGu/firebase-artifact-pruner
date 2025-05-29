@@ -1,6 +1,6 @@
 {
   "name": "firebase-artifact-pruner",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "CLI tool to prune Firebase distribution artifacts",
   "main": "dist/index.js",
   "bin": {
