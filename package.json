@@ -14,7 +14,13 @@
     "build": "tsc",
     "start": "node dist/index.js"
   },
-  "keywords": ["firebase", "firebase-distribution", "cli", "artifact", "prune"],
+  "keywords": [
+    "firebase",
+    "firebase-distribution",
+    "cli",
+    "artifact",
+    "prune"
+  ],
   "author": "Dosang Gu",
   "license": "MIT",
   "repository": {

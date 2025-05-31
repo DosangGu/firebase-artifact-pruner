@@ -127,7 +127,9 @@ async function deleteReleases(
     // The release.name from listReleases should already be in this format.
     const formattedReleaseNames = chunk;
 
-    console.log(`Attempting to delete a chunk of ${formattedReleaseNames.length} release(s) for app ${appId}.`);
+    console.log(
+      `Attempting to delete a chunk of ${formattedReleaseNames.length} release(s) for app ${appId}.`
+    );
 
     const response = await fetch(url, {
       method: "POST",
@@ -142,7 +144,11 @@ async function deleteReleases(
       const errorText = await response.text();
       // Log the specific chunk that failed, but continue trying other chunks.
       console.error(
-        `Failed to batch delete a chunk of releases for app ${appId}: ${response.status} ${errorText}. Releases in this chunk: ${formattedReleaseNames.join(", ")}`
+        `Failed to batch delete a chunk of releases for app ${appId}: ${
+          response.status
+        } ${errorText}. Releases in this chunk: ${formattedReleaseNames.join(
+          ", "
+        )}`
       );
       // Optionally, you could decide to throw an error here and stop further processing,
       // or collect failures and report them at the end.
@@ -162,7 +168,8 @@ async function main() {
   const program = new Command();
   program
     .requiredOption("-p, --projectId <projectId>", "Firebase Project ID")
-    .option( // Changed from requiredOption
+    .option(
+      // Changed from requiredOption
       "-k, --serviceAccountKey <path>",
       "Path to Firebase service account key JSON file"
     )
