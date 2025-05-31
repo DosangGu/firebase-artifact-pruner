@@ -7,12 +7,14 @@
     "firebase-artifact-pruner": "dist/index.js"
   },
   "files": [
-    "dist",
-    "action.yml"
+    "dist/index.js",
+    "dist/pruner.js"
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
+    "build:cli": "tsc",
+    "build:action": "ncc build src/action-entrypoint.ts -o dist/action",
+    "build": "npm run build:cli && npm run build:action",
     "start": "node dist/index.js",
     "prepare": "npm run build"
   },
@@ -37,9 +39,12 @@
   "type": "commonjs",
   "dependencies": {
     "@actions/core": "^1.10.1",
-    "@types/node": "22.15.29",
     "commander": "^14.0.0",
-    "firebase-admin": "^13.4.0",
-    "typescript": "^5.8.3"
+    "firebase-admin": "^13.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.29",
+    "typescript": "^5.8.3",
+    "@vercel/ncc": "^0.38.1"
   }
 }
