@@ -22,16 +22,32 @@ interface Release {
 
 async function listApps(
   projectId: string,
-  serviceAccountKeyPath: string | undefined // Changed to optional
+  serviceAccountKeyPath: string | undefined, // Changed to optional
+  serviceAccountKeyJson: string | undefined // New: for JSON string
 ): Promise<App[]> {
-  const auth = serviceAccountKeyPath
-    ? new GoogleAuth({
-        keyFile: serviceAccountKeyPath,
-        scopes: ["https://www.googleapis.com/auth/cloud-platform"],
-      })
-    : new GoogleAuth({
+  let auth;
+  if (serviceAccountKeyJson) {
+    try {
+      const credentials = JSON.parse(serviceAccountKeyJson);
+      auth = new GoogleAuth({
+        credentials,
         scopes: ["https://www.googleapis.com/auth/cloud-platform"],
       });
+    } catch (e) {
+      throw new Error(
+        "Failed to parse serviceAccountKeyJson: " + (e as Error).message
+      );
+    }
+  } else if (serviceAccountKeyPath) {
+    auth = new GoogleAuth({
+      keyFile: serviceAccountKeyPath,
+      scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+    });
+  } else {
+    auth = new GoogleAuth({
+      scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+    });
+  }
   const client = await auth.getClient();
   const accessToken = (await client.getAccessToken()).token;
 
@@ -54,16 +70,32 @@ async function listApps(
 async function listReleases(
   projectId: string,
   appId: string,
-  serviceAccountKeyPath: string | undefined // Changed to optional
+  serviceAccountKeyPath: string | undefined, // Changed to optional
+  serviceAccountKeyJson: string | undefined // New: for JSON string
 ): Promise<Release[]> {
-  const auth = serviceAccountKeyPath
-    ? new GoogleAuth({
-        keyFile: serviceAccountKeyPath,
-        scopes: ["https://www.googleapis.com/auth/cloud-platform"],
-      })
-    : new GoogleAuth({
+  let auth;
+  if (serviceAccountKeyJson) {
+    try {
+      const credentials = JSON.parse(serviceAccountKeyJson);
+      auth = new GoogleAuth({
+        credentials,
         scopes: ["https://www.googleapis.com/auth/cloud-platform"],
       });
+    } catch (e) {
+      throw new Error(
+        "Failed to parse serviceAccountKeyJson: " + (e as Error).message
+      );
+    }
+  } else if (serviceAccountKeyPath) {
+    auth = new GoogleAuth({
+      keyFile: serviceAccountKeyPath,
+      scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+    });
+  } else {
+    auth = new GoogleAuth({
+      scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+    });
+  }
   const client = await auth.getClient();
   const accessToken = (await client.getAccessToken()).token;
 
@@ -100,21 +132,37 @@ async function deleteReleases(
   projectId: string,
   appId: string,
   releaseNames: string[],
-  serviceAccountKeyPath: string | undefined // Changed to optional
+  serviceAccountKeyPath: string | undefined, // Changed to optional
+  serviceAccountKeyJson: string | undefined // New: for JSON string
 ): Promise<void> {
   if (releaseNames.length === 0) {
     console.log("No releases provided to delete.");
     return;
   }
 
-  const auth = serviceAccountKeyPath
-    ? new GoogleAuth({
-        keyFile: serviceAccountKeyPath,
-        scopes: ["https://www.googleapis.com/auth/cloud-platform"],
-      })
-    : new GoogleAuth({
+  let auth;
+  if (serviceAccountKeyJson) {
+    try {
+      const credentials = JSON.parse(serviceAccountKeyJson);
+      auth = new GoogleAuth({
+        credentials,
         scopes: ["https://www.googleapis.com/auth/cloud-platform"],
       });
+    } catch (e) {
+      throw new Error(
+        "Failed to parse serviceAccountKeyJson: " + (e as Error).message
+      );
+    }
+  } else if (serviceAccountKeyPath) {
+    auth = new GoogleAuth({
+      keyFile: serviceAccountKeyPath,
+      scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+    });
+  } else {
+    auth = new GoogleAuth({
+      scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+    });
+  }
   const client = await auth.getClient();
   const accessToken = (await client.getAccessToken()).token;
 
@@ -169,9 +217,12 @@ async function main() {
   program
     .requiredOption("-p, --projectId <projectId>", "Firebase Project ID")
     .option(
-      // Changed from requiredOption
       "-k, --serviceAccountKey <path>",
-      "Path to Firebase service account key JSON file"
+      "Path to Firebase service account key JSON file. Used if --serviceAccountKeyJson is not provided."
+    )
+    .option(
+      "--serviceAccountKeyJson <jsonString>",
+      "Firebase service account key as a JSON string. Takes precedence over --serviceAccountKey."
     )
     .option("-a, --appId <appId>", "Specific Firebase App ID to process") // Added appId option
     .option(
@@ -189,13 +240,27 @@ async function main() {
   const options = program.opts();
   const projectId = options.projectId;
   const serviceAccountKeyPath = options.serviceAccountKey;
+  const serviceAccountKeyJson = options.serviceAccountKeyJson;
   const appIdOption = options.appId; // Get appId from options
   const minCount = parseInt(options.minCount, 10);
   const maxDays = parseInt(options.maxDays, 10);
 
   try {
     // Initialize Firebase Admin SDK
-    if (serviceAccountKeyPath) {
+    if (serviceAccountKeyJson) {
+      try {
+        const serviceAccount = JSON.parse(serviceAccountKeyJson);
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount),
+        });
+      } catch (e) {
+        console.error(
+          "Failed to parse serviceAccountKeyJson for Firebase Admin SDK:",
+          (e as Error).message
+        );
+        process.exit(1);
+      }
+    } else if (serviceAccountKeyPath) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const serviceAccount = require(serviceAccountKeyPath);
       admin.initializeApp({
@@ -213,7 +278,8 @@ async function main() {
       const releases = await listReleases(
         projectId,
         appIdOption,
-        serviceAccountKeyPath
+        serviceAccountKeyPath,
+        serviceAccountKeyJson
       );
 
       if (!releases || releases.length === 0) {
@@ -253,7 +319,8 @@ async function main() {
               projectId,
               appIdOption,
               releaseNamesToDelete,
-              serviceAccountKeyPath
+              serviceAccountKeyPath,
+              serviceAccountKeyJson
             );
           } catch (error) {
             console.error(
@@ -266,7 +333,11 @@ async function main() {
     } else {
       // Process all apps if no specific appId is provided
       console.log(`Fetching apps for project: ${projectId}`);
-      const apps = await listApps(projectId, serviceAccountKeyPath);
+      const apps = await listApps(
+        projectId,
+        serviceAccountKeyPath,
+        serviceAccountKeyJson
+      );
 
       if (!apps || apps.length === 0) {
         console.log("No apps found in this project.");
@@ -286,7 +357,8 @@ Processing app: ${app.name} (${app.appId})`);
         const releases = await listReleases(
           projectId,
           app.appId,
-          serviceAccountKeyPath
+          serviceAccountKeyPath,
+          serviceAccountKeyJson
         );
 
         if (!releases || releases.length === 0) {
@@ -334,7 +406,8 @@ Processing app: ${app.name} (${app.appId})`);
             projectId,
             app.appId,
             releaseNamesToDelete,
-            serviceAccountKeyPath
+            serviceAccountKeyPath,
+            serviceAccountKeyJson
           );
         } catch (error) {
           console.error(
