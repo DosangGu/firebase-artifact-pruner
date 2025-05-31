@@ -22,12 +22,16 @@ interface Release {
 
 async function listApps(
   projectId: string,
-  serviceAccountKeyPath: string
+  serviceAccountKeyPath: string | undefined // Changed to optional
 ): Promise<App[]> {
-  const auth = new GoogleAuth({
-    keyFile: serviceAccountKeyPath,
-    scopes: ["https://www.googleapis.com/auth/cloud-platform"],
-  });
+  const auth = serviceAccountKeyPath
+    ? new GoogleAuth({
+        keyFile: serviceAccountKeyPath,
+        scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+      })
+    : new GoogleAuth({
+        scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+      });
   const client = await auth.getClient();
   const accessToken = (await client.getAccessToken()).token;
 
@@ -50,12 +54,16 @@ async function listApps(
 async function listReleases(
   projectId: string,
   appId: string,
-  serviceAccountKeyPath: string
+  serviceAccountKeyPath: string | undefined // Changed to optional
 ): Promise<Release[]> {
-  const auth = new GoogleAuth({
-    keyFile: serviceAccountKeyPath,
-    scopes: ["https://www.googleapis.com/auth/cloud-platform"],
-  });
+  const auth = serviceAccountKeyPath
+    ? new GoogleAuth({
+        keyFile: serviceAccountKeyPath,
+        scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+      })
+    : new GoogleAuth({
+        scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+      });
   const client = await auth.getClient();
   const accessToken = (await client.getAccessToken()).token;
 
@@ -92,17 +100,21 @@ async function deleteReleases(
   projectId: string,
   appId: string,
   releaseNames: string[],
-  serviceAccountKeyPath: string
+  serviceAccountKeyPath: string | undefined // Changed to optional
 ): Promise<void> {
   if (releaseNames.length === 0) {
     console.log("No releases provided to delete.");
     return;
   }
 
-  const auth = new GoogleAuth({
-    keyFile: serviceAccountKeyPath,
-    scopes: ["https://www.googleapis.com/auth/cloud-platform"],
-  });
+  const auth = serviceAccountKeyPath
+    ? new GoogleAuth({
+        keyFile: serviceAccountKeyPath,
+        scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+      })
+    : new GoogleAuth({
+        scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+      });
   const client = await auth.getClient();
   const accessToken = (await client.getAccessToken()).token;
 
@@ -150,7 +162,7 @@ async function main() {
   const program = new Command();
   program
     .requiredOption("-p, --projectId <projectId>", "Firebase Project ID")
-    .requiredOption(
+    .option( // Changed from requiredOption
       "-k, --serviceAccountKey <path>",
       "Path to Firebase service account key JSON file"
     )
@@ -176,11 +188,15 @@ async function main() {
 
   try {
     // Initialize Firebase Admin SDK
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const serviceAccount = require(serviceAccountKeyPath);
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
+    if (serviceAccountKeyPath) {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const serviceAccount = require(serviceAccountKeyPath);
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+      });
+    } else {
+      admin.initializeApp(); // Use Application Default Credentials
+    }
 
     if (appIdOption) {
       // Process a single app if appId is provided
