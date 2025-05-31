@@ -17,6 +17,14 @@
   "keywords": ["firebase", "firebase-distribution", "cli", "artifact", "prune"],
   "author": "Dosang Gu",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DosangGu/firebase-artifact-pruner.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DosangGu/firebase-artifact-pruner/issues"
+  },
+  "homepage": "https://github.com/DosangGu/firebase-artifact-pruner#readme",
   "type": "commonjs",
   "dependencies": {
     "@types/node": "22.15.29",
