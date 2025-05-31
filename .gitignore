@@ -84,7 +84,6 @@ out
 
 # Nuxt.js build output
 .nuxt
-dist
 
 # Gatsby files
 .cache/
@@ -116,9 +115,6 @@ DynamoDBLocal_lib/
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-
-# Output directory
-dist/
 
 # IDE specific files
 .vscode/

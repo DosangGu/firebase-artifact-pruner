@@ -1,0 +1,33 @@
+name: "Firebase Artifact Pruner"
+description: "Prunes old Firebase App Distribution artifacts based on specified criteria."
+author: "Dosang Gu"
+
+inputs:
+  project-id:
+    description: "Firebase Project ID."
+    required: true
+  service-account-key-json:
+    description: "Firebase service account key as a JSON string. Recommended for use with secrets."
+    required: false
+  service-account-key-path:
+    description: "Path to Firebase service account key JSON file. Used if service-account-key-json or GOOGLE_APPLICATION_CREDENTIALS env is not provided."
+    required: false
+  app-id:
+    description: "Specific Firebase App ID to process. If not provided, all apps in the project will be processed."
+    required: false
+  min-count:
+    description: "Minimum number of artifacts to keep."
+    required: false
+    default: "5"
+  max-days:
+    description: "Maximum age in days for artifacts to keep."
+    required: false
+    default: "30"
+
+runs:
+  using: "node20"
+  main: "dist/action-entrypoint.js"
+
+branding:
+  icon: "trash-2"
+  color: "orange"
