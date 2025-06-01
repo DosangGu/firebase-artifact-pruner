@@ -1,7 +1,7 @@
 {
   "name": "firebase-artifact-pruner",
-  "version": "1.0.1",
-  "description": "CLI tool to prune Firebase distribution artifacts",
+  "version": "1.0.2",
+  "description": "DEPRECATED: Use firebase-distribution-cleaner instead. CLI tool to prune Firebase distribution artifacts",
   "main": "dist/index.js",
   "bin": {
     "firebase-artifact-pruner": "dist/index.js"
@@ -36,6 +36,7 @@
     "url": "https://github.com/DosangGu/firebase-artifact-pruner/issues"
   },
   "homepage": "https://github.com/DosangGu/firebase-artifact-pruner#readme",
+  "deprecated": "This package has been deprecated and is no longer maintained. Please use firebase-distribution-cleaner instead.",
   "type": "commonjs",
   "dependencies": {
     "@actions/core": "^1.10.1",

@@ -1,5 +1,11 @@
 # Firebase Artifact Pruner
 
+**THIS PACKAGE IS DEPRECATED AND NO LONGER MAINTAINED.**
+
+**Please migrate to [firebase-distribution-cleaner](https://github.com/DosangGu/firebase-distribution-cleaner).**
+
+---
+
 `firebase-artifact-pruner` is a CLI tool to help you manage and prune artifacts in Firebase App Distribution. It allows you to list apps, list releases for an app, and delete releases based on criteria such as the number of releases to keep and the maximum age of releases.
 
 ## Features

@@ -1,5 +1,5 @@
-name: "Firebase Artifact Pruner"
-description: "Prunes old Firebase App Distribution artifacts based on specified criteria."
+name: "Firebase Artifact Pruner (DEPRECATED - Use firebase-distribution-cleaner)"
+description: "DEPRECATED: This action is no longer maintained. Please use the firebase-distribution-cleaner action instead. Prunes old Firebase App Distribution artifacts based on specified criteria."
 author: "Dosang Gu"
 
 inputs:
